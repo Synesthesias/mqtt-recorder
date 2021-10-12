@@ -2,23 +2,26 @@
 
 Simple tool to record/replay MQTT data.
 
-## Usage
+## 使い方
+### インストール(Windows)
+#### Python3.9
+https://www.python.org/downloads/
 
+#### pythonパッケージ
 ```
-usage: mqtt_recorder.py [-h] [--server server] [--mode mode]
-                        [--input filename] [--output filename] [--realtime]
-                        [--speed factor] [--delay milliseconds] [--debug]
-
-MQTT recorder
-
-optional arguments:
-  -h, --help            show this help message and exit
-  --server server       MQTT broker
-  --mode mode           Mode of operation (record/replay)
-  --input filename      Input file
-  --output filename     Output file
-  --realtime            Enable realtime replay
-  --speed factor        Realtime speed factor for replay (10=10x)
-  --delay milliseconds  Delay between replayed events
-  --debug               Enable debugging
+pip3 install paho-mqtt
 ```
+
+#### MQTTブローカー
+* https://mosquitto.org/download/
+  * https://mosquitto.org/files/binary/win64/mosquitto-2.0.12-install-windows-x64.exe
+
+### 記録
+```
+pythonw.exe mqtt_recorder.py --server 192.168.0.1 --mode record --output 2021-08-03-mqtt.json
+```
+
+### 再生
+```
+pythonw.exe mqtt_recorder.py --server localhost --mode replay --input 2021-08-03-mqtt.json
+ ```

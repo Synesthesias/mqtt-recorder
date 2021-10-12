@@ -10,39 +10,41 @@ import signal
 import sys
 import time
 
-from hbmqtt.client import QOS_0, QOS_1, MQTTClient
+import paho.mqtt.client as mqtt
 
-TOPICS = [("#", QOS_1)]
+TOPICS = ['vehicle/pose', 'vehicle/velocity']
 
 logger = logging.getLogger('mqtt_recorder')
 
 
 async def mqtt_record(server: str, output: str = None) -> None:
     """Record MQTT messages"""
-    mqtt = MQTTClient()
-    await mqtt.connect(server)
-    await mqtt.subscribe(TOPICS)
+    mqttc = mqtt.Client()
+    mqttc.connect(server, 1883, 5)
+    for topic in TOPICS:
+        mqttc.subscribe(topic)
     if output is not None:
         output_file = open(output, 'wt')
     else:
         output_file = sys.stdout
-    while True:
-        message = await mqtt.deliver_message()
+    def on_message(mqttc, obj, message):
         record = {
             'time': time.time(),
             'qos': message.qos,
             'retain': message.retain,
             'topic': message.topic,
-            'msg_b64': base64.urlsafe_b64encode(message.data).decode()
+            'msg_b64': base64.urlsafe_b64encode(message.payload).decode()
         }
         print(json.dumps(record), file=output_file)
+    mqttc.on_message = on_message
+    await mqttc.loop_forever()
+
 
 
 async def mqtt_replay(server: str, input: str = None, delay: int = 0, realtime: bool = False, scale: float = 1) -> None:
     """Replay MQTT messages"""
-    mqtt = MQTTClient()
-    await mqtt.connect(server)
-    await mqtt.subscribe(TOPICS)
+    mqttc = mqtt.Client()
+    mqttc.connect(server, 1883, 5)
     if input is not None:
         input_file = open(input, 'rt')
     else:
@@ -63,9 +65,9 @@ async def mqtt_replay(server: str, input: str = None, delay: int = 0, realtime: 
             logger.warning("Missing message attribute: %s", record)
             next
         logger.info("Publish: %s", record)
-        await mqtt.publish(record['topic'], msg,
+        mqttc.publish(record['topic'], msg,
                            retain=record.get('retain'),
-                           qos=record.get('qos', QOS_0))
+                           qos=0)
         delay_s = static_delay_s
         if realtime or scale != 1:
             delay_s += (record['time'] - last_timestamp if last_timestamp else 0) * scale
@@ -139,8 +141,8 @@ def main():
         process = mqtt_record(server=args.server, output=args.output)
 
     loop = asyncio.get_event_loop()
-    for s in (signal.SIGINT, signal.SIGTERM):
-        loop.add_signal_handler(s, lambda: asyncio.ensure_future(shutdown(s, loop)))
+    # for s in (signal.SIGINT, signal.SIGTERM):
+    #     loop.add_signal_handler(s, lambda: asyncio.ensure_future(shutdown(s, loop)))
 
     loop.run_until_complete(process)
 
