@@ -1,5 +1,7 @@
 # MQTT Recorder
 
+メッセージの頻度が高すぎると再生時にpublish時間に遅延が出てしまう問題あり。
+
 Simple tool to record/replay MQTT data.
 
 ## 使い方
