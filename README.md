@@ -25,5 +25,5 @@ pythonw.exe mqtt_recorder.py --server 192.168.0.1 --mode record --output 2021-08
 
 ### 再生
 ```
-pythonw.exe mqtt_recorder.py --server localhost --mode replay --input 2021-08-03-mqtt.json
+pythonw.exe mqtt_recorder.py --server localhost --mode replay --input 2021-08-03-mqtt.json --realtime
  ```
