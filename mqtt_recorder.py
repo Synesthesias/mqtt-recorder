@@ -12,7 +12,7 @@ import time
 
 import paho.mqtt.client as mqtt
 
-TOPICS = ['vehicle/pose', 'vehicle/velocity']
+TOPICS = ['vehicle/pose', 'vehicle/velocity', 'vehicle/pose/reliability']
 
 logger = logging.getLogger('mqtt_recorder')
 
