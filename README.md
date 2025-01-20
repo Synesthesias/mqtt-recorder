@@ -17,6 +17,7 @@ pip3 install paho-mqtt
 #### MQTTブローカー
 * https://mosquitto.org/download/
   * https://mosquitto.org/files/binary/win64/mosquitto-2.0.12-install-windows-x64.exe
+  * 参考：https://synesthesias.atlassian.net/wiki/spaces/RIDEVISION/pages/347308129#MQTT%E3%83%96%E3%83%AD%E3%83%BC%E3%82%AB%E3%83%BC%E3%81%AE%E8%A8%AD%E5%AE%9A
 
 ### 記録
 ```
