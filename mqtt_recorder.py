@@ -200,7 +200,11 @@ def main():
     else:
         process = mqtt_record(server=args.server, output=args.output)
 
-    loop = asyncio.get_event_loop()
+    try:
+        loop = asyncio.get_event_loop()
+    except RuntimeError:
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
     # for s in (signal.SIGINT, signal.SIGTERM):
     #     loop.add_signal_handler(s, lambda: asyncio.ensure_future(shutdown(s, loop)))
 
