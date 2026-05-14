@@ -1,0 +1,1 @@
+testdataフォルダ以下にあるのは、RideVisionのMqttLagTestシーンで利用する用です。

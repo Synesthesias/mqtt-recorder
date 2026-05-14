@@ -1,6 +1,7 @@
 # MQTT Recorder
 
-メッセージの頻度が高すぎると再生時にpublish時間に遅延が出てしまう問題あり。
+高頻度メッセージの再生では、`--realtime` と絶対時刻ベースのスケジューリングを使ってpublishします。
+短い待ち時間はOSのsleep分解能で遅れやすいため、必要に応じて `--busy-wait-threshold-ms` を調整してください。
 
 Simple tool to record/replay MQTT data.
 
@@ -28,3 +29,8 @@ pythonw.exe mqtt_recorder.py --server 192.168.0.1 --mode record --output 2021-08
 ```
 pythonw.exe mqtt_recorder.py --server localhost --mode replay --input 2021-08-03-mqtt.json --realtime
  ```
+
+900Hzなど高頻度の再生でタイミング精度を優先する場合:
+```
+pythonw.exe mqtt_recorder.py --server localhost --mode replay --input 2021-08-03-mqtt.json --realtime --busy-wait-threshold-ms 1
+```
