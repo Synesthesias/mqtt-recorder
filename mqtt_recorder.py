@@ -160,11 +160,15 @@ async def mqtt_replay(server: str, input: str = None, delay: int = 0, realtime: 
                 continue
 
             if realtime or scale != 1:
+                if 'time' not in record:
+                    logger.warning("Missing time attribute: %s", record)
+                    continue
+                record_time = record['time']
                 if first_record_timestamp is None:
-                    first_record_timestamp = record['time']
+                    first_record_timestamp = record_time
                     replay_start_time = time.perf_counter()
                     logger.info("Replay schedule started at record timestamp %.6f", first_record_timestamp)
-                target_time = replay_start_time + (record['time'] - first_record_timestamp) * scale
+                target_time = replay_start_time + (record_time - first_record_timestamp) * scale
                 sleep_until(target_time, busy_wait_threshold_s)
                 max_late_s = max(max_late_s, time.perf_counter() - target_time)
             elif static_delay_s > 0 and previous_publish_time is not None:
