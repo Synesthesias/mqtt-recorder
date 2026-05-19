@@ -26,6 +26,8 @@ def parse_mqtt_server(server: str):
         parsed = urlparse(server)
         if not parsed.hostname:
             raise ValueError("missing host in server")
+        if parsed.scheme and parsed.scheme != "mqtt":
+            raise ValueError("unsupported scheme")
         try:
             port = parsed.port or 1883
         except ValueError as exc:
@@ -144,7 +146,7 @@ async def mqtt_replay(server: str, input: str = None, delay: int = 0, realtime: 
     replay_start_time = None
     previous_publish_time = None
     last_publish_info = None
-    first_publish_call_time = None
+    first_publish_complete_time = None
     published_count = 0
     max_late_s = 0
     started_at = time.perf_counter()
@@ -157,6 +159,10 @@ async def mqtt_replay(server: str, input: str = None, delay: int = 0, realtime: 
                 msg = record['msg'].encode()
             else:
                 logger.warning("Missing message attribute: %s", record)
+                continue
+
+            if 'topic' not in record:
+                logger.warning("Missing topic attribute: %s", record)
                 continue
 
             if realtime or scale != 1:
@@ -177,10 +183,13 @@ async def mqtt_replay(server: str, input: str = None, delay: int = 0, realtime: 
             last_publish_info = mqttc.publish(record['topic'], msg,
                                               retain=record.get('retain'),
                                               qos=0)
+            last_publish_info.wait_for_publish()
+            last_publish_info = None
             previous_publish_time = time.perf_counter()
-            if first_publish_call_time is None:
-                first_publish_call_time = previous_publish_time
-                logger.info("First publish call after %.3fms", (first_publish_call_time - started_at) * 1000)
+            if first_publish_complete_time is None:
+                first_publish_complete_time = previous_publish_time
+                logger.info("First publish completed after %.3fms",
+                            (first_publish_complete_time - started_at) * 1000)
             published_count += 1
     finally:
         if last_publish_info is not None:
