@@ -11,7 +11,7 @@ Simple tool to record/replay MQTT data.
 https://www.python.org/downloads/
 
 #### pythonパッケージ
-```
+```bash
 pip3 install paho-mqtt
 ```
 
@@ -21,17 +21,17 @@ pip3 install paho-mqtt
   * 参考：https://synesthesias.atlassian.net/wiki/spaces/RIDEVISION/pages/347308129#MQTT%E3%83%96%E3%83%AD%E3%83%BC%E3%82%AB%E3%83%BC%E3%81%AE%E8%A8%AD%E5%AE%9A
 
 ### 記録
-```
+```bash
 pythonw.exe mqtt_recorder.py --server 192.168.0.1 --mode record --output 2021-08-03-mqtt.json
 ```
 
 ### 再生
-```
+```bash
 pythonw.exe mqtt_recorder.py --server 127.0.0.1 --mode replay --input 2021-08-03-mqtt.json --realtime
- ```
+```
 
 900Hzなど高頻度の再生でタイミング精度を優先する場合:
-```
+```bash
 pythonw.exe mqtt_recorder.py --server 127.0.0.1 --mode replay --input 2021-08-03-mqtt.json --realtime --busy-wait-threshold-ms 1
 ```
 

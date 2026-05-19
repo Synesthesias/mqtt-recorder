@@ -1,4 +1,5 @@
 """Generate linear vehicle pose replay data for mqtt_recorder."""
+""""テストデータとして、車両が直線運動で加速→速度維持→減速するときのMQTTデータを作成します。"""
 
 import argparse
 import base64
@@ -14,6 +15,14 @@ CRUISE_DURATION = 5.0
 DECEL_DURATION = 10.0
 MAX_SPEED = 40.0
 TOPIC = "vehicle/pose"
+TYPE_DOUBLE = 0x01
+TYPE_DOCUMENT = 0x03
+TYPE_INT32 = 0x10
+TYPE_INT64 = 0x12
+INT32_MIN = -(2**31)
+INT32_MAX = 2**31 - 1
+INT64_MIN = -(2**63)
+INT64_MAX = 2**63 - 1
 
 
 def bson_cstring(value):
@@ -21,20 +30,28 @@ def bson_cstring(value):
 
 
 def bson_document(value):
+    """Serialize testdata-only BSON values: dict, float, and signed ints."""
     body = bytearray()
     for key, item in value.items():
         if isinstance(item, dict):
-            body.append(0x03)
+            body.append(TYPE_DOCUMENT)
             body.extend(bson_cstring(key))
             body.extend(bson_document(item))
         elif isinstance(item, float):
-            body.append(0x01)
+            body.append(TYPE_DOUBLE)
             body.extend(bson_cstring(key))
             body.extend(struct.pack("<d", item))
         elif isinstance(item, int):
-            body.append(0x10)
-            body.extend(bson_cstring(key))
-            body.extend(struct.pack("<i", item))
+            if INT32_MIN <= item <= INT32_MAX:
+                body.append(TYPE_INT32)
+                body.extend(bson_cstring(key))
+                body.extend(struct.pack("<i", item))
+            elif INT64_MIN <= item <= INT64_MAX:
+                body.append(TYPE_INT64)
+                body.extend(bson_cstring(key))
+                body.extend(struct.pack("<q", item))
+            else:
+                raise TypeError(f"BSON int out of int64 range for {key}: {item}")
         else:
             raise TypeError(f"Unsupported BSON value for {key}: {type(item)}")
 
@@ -42,7 +59,12 @@ def bson_document(value):
     return struct.pack("<i", total_length) + bytes(body) + b"\x00"
 
 
-def vehicle_state(time_s):
+def vehicle_state(time_s: float) -> tuple[float, float]:
+    """Return linear motion position (m) and speed (m/s) at time_s seconds.
+
+    Motion phases use MAX_SPEED, ACCEL_DURATION, CRUISE_DURATION, and
+    DECEL_DURATION.
+    """
     accel = MAX_SPEED / ACCEL_DURATION
     cruise_start_x = 0.5 * accel * ACCEL_DURATION * ACCEL_DURATION
     decel_start_x = cruise_start_x + MAX_SPEED * CRUISE_DURATION
@@ -106,10 +128,20 @@ def write_records(path, rate_hz):
             output.write("\n")
 
 
+def positive_int(value):
+    try:
+        parsed = int(value)
+    except ValueError as exc:
+        raise argparse.ArgumentTypeError("must be a positive integer") from exc
+    if parsed <= 0:
+        raise argparse.ArgumentTypeError("must be a positive integer")
+    return parsed
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--output-dir", type=Path, default=Path("testdata"))
-    parser.add_argument("--rates", type=int, nargs="+", default=[90, 900])
+    parser.add_argument("--rates", type=positive_int, nargs="+", default=[90, 900])
     args = parser.parse_args()
 
     args.output_dir.mkdir(parents=True, exist_ok=True)

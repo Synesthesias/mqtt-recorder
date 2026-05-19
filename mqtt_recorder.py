@@ -5,6 +5,7 @@ import asyncio
 import base64
 import json
 import logging
+import math
 import os
 import signal
 import sys
@@ -23,13 +24,23 @@ def parse_mqtt_server(server: str):
     """Parse MQTT server option into host and port."""
     if '://' in server:
         parsed = urlparse(server)
-        return parsed.hostname, parsed.port or 1883
+        if not parsed.hostname:
+            raise ValueError("missing host in server")
+        try:
+            port = parsed.port or 1883
+        except ValueError as exc:
+            raise ValueError("invalid server format") from exc
+        return parsed.hostname, port
     if ':' in server:
         host, port = server.rsplit(':', 1)
+        if not host:
+            raise ValueError("missing host in server")
         try:
             return host, int(port)
         except ValueError:
-            pass
+            raise ValueError("invalid server format") from None
+    if not server:
+        raise ValueError("missing host in server")
     return server, 1883
 
 
@@ -233,6 +244,8 @@ def main():
                         help='Busy-wait threshold for precise high-rate replay')
 
     args = parser.parse_args()
+    if not math.isfinite(args.speed) or args.speed <= 0:
+        parser.error("--speed must be > 0")
 
     if args.debug:
         logging.basicConfig(level=logging.DEBUG)
