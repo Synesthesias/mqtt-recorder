@@ -82,6 +82,7 @@ def main():
     parser.add_argument("--output-dir", type=Path, default=Path("testdata"))
     parser.add_argument("--rates", type=positive_int, nargs="+", default=[10, 90])
     parser.add_argument("--seed", type=int, default=20260525)
+    # Defaults are based on the experiment in https://synesthesias.atlassian.net/browse/RV-746
     parser.add_argument("--position-noise-mean", type=float, default=0.0688)
     parser.add_argument("--position-noise-stddev", type=float, default=0.0694)
     parser.add_argument("--stationary-duration", type=float, default=DEFAULT_STATIONARY_DURATION)
