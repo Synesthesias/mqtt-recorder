@@ -84,14 +84,14 @@ def vehicle_state(time_s: float) -> tuple[float, float]:
     return position, speed
 
 
-def make_pose_payload(timestamp, position_x):
+def make_pose_payload(timestamp, position_x, position_y=0.0, position_z=0.0):
     message = {
         "timestamp": timestamp,
         "data": {
             "position": {
                 "x": position_x,
-                "y": 0.0,
-                "z": 0.0,
+                "y": position_y,
+                "z": position_z,
             },
             "rotation": {
                 "x": 0.0,
