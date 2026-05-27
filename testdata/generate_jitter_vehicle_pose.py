@@ -27,6 +27,11 @@ DEFAULT_STATIONARY_DURATION = 20.0
 
 
 def jitter_offsets(rng, position_noise_mean, position_noise_stddev):
+    if position_noise_mean <= 0.0:
+        raise ValueError("position_noise_mean must be greater than 0")
+    if position_noise_stddev < 0.0:
+        raise ValueError("position_noise_stddev must be greater than or equal to 0")
+
     angle = rng.uniform(0.0, 2.0 * math.pi)
     if position_noise_stddev <= 0.0:
         radius = position_noise_mean
@@ -87,6 +92,13 @@ def main():
     parser.add_argument("--position-noise-stddev", type=float, default=0.0694)
     parser.add_argument("--stationary-duration", type=float, default=DEFAULT_STATIONARY_DURATION)
     args = parser.parse_args()
+
+    if args.position_noise_mean <= 0.0:
+        parser.error("--position-noise-mean must be greater than 0")
+    if args.position_noise_stddev < 0.0:
+        parser.error("--position-noise-stddev must be greater than or equal to 0")
+    if args.stationary_duration < 0.0:
+        parser.error("--stationary-duration must be greater than or equal to 0")
 
     args.output_dir.mkdir(parents=True, exist_ok=True)
     for rate_hz in args.rates:

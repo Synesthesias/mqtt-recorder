@@ -1,4 +1,4 @@
-testdataフォルダ以下にあるのは、RideVisionのMqttLagTestシーンで利用する用です。
+testdataフォルダ内のファイルは、RideVisionのMqttLagTestシーンで使用するためのデータです。
 
 - linear_vehicle_pose_*.json: 理想的な直線運動です。
 - jitter_vehicle_pose_*.json: 理想的な直線運動にVehicleLocalizerのmqtt_lag_test相当の2D位置ブレを重ねたものです。運動終了後20秒間は停止したままブレだけを再現します。
