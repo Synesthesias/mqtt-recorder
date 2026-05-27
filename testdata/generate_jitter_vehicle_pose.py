@@ -16,6 +16,7 @@ from generate_linear_vehicle_pose import (
     ACCEL_DURATION,
     CRUISE_DURATION,
     DECEL_DURATION,
+    MAX_SPEED,
     START_TIME,
     TOPIC,
     make_pose_payload,
@@ -48,6 +49,7 @@ def iter_records(
     position_noise_mean,
     position_noise_stddev,
     stationary_duration,
+    max_speed,
 ):
     motion_duration = ACCEL_DURATION + CRUISE_DURATION + DECEL_DURATION
     duration = motion_duration + stationary_duration
@@ -58,7 +60,7 @@ def iter_records(
         elapsed = min(index / rate_hz, duration)
         timestamp = START_TIME + elapsed
         motion_elapsed = min(elapsed, motion_duration)
-        position_x, _speed = vehicle_state(motion_elapsed)
+        position_x, _speed = vehicle_state(motion_elapsed, max_speed)
         jitter_x, jitter_y, jitter_z = jitter_offsets(rng, position_noise_mean, position_noise_stddev)
         payload = make_pose_payload(
             timestamp,
@@ -87,6 +89,7 @@ def main():
     parser.add_argument("--output-dir", type=Path, default=Path("testdata"))
     parser.add_argument("--rates", type=positive_int, nargs="+", default=[10, 90])
     parser.add_argument("--seed", type=int, default=20260525)
+    parser.add_argument("--max-speed", type=float, default=MAX_SPEED, help="Maximum vehicle speed in m/s.")
     # Defaults are based on the experiment in https://synesthesias.atlassian.net/browse/RV-746
     parser.add_argument("--position-noise-mean", type=float, default=0.0688)
     parser.add_argument("--position-noise-stddev", type=float, default=0.0694)
@@ -99,6 +102,8 @@ def main():
         parser.error("--position-noise-stddev must be greater than or equal to 0")
     if args.stationary_duration < 0.0:
         parser.error("--stationary-duration must be greater than or equal to 0")
+    if args.max_speed <= 0.0:
+        parser.error("--max-speed must be greater than 0")
 
     args.output_dir.mkdir(parents=True, exist_ok=True)
     for rate_hz in args.rates:
@@ -110,6 +115,7 @@ def main():
             position_noise_mean=args.position_noise_mean,
             position_noise_stddev=args.position_noise_stddev,
             stationary_duration=args.stationary_duration,
+            max_speed=args.max_speed,
         )
         print(path)
 

@@ -59,27 +59,27 @@ def bson_document(value):
     return struct.pack("<i", total_length) + bytes(body) + b"\x00"
 
 
-def vehicle_state(time_s: float) -> tuple[float, float]:
+def vehicle_state(time_s: float, max_speed: float = MAX_SPEED) -> tuple[float, float]:
     """Return linear motion position (m) and speed (m/s) at time_s seconds.
 
-    Motion phases use MAX_SPEED, ACCEL_DURATION, CRUISE_DURATION, and
+    Motion phases use max_speed, ACCEL_DURATION, CRUISE_DURATION, and
     DECEL_DURATION.
     """
-    accel = MAX_SPEED / ACCEL_DURATION
+    accel = max_speed / ACCEL_DURATION
     cruise_start_x = 0.5 * accel * ACCEL_DURATION * ACCEL_DURATION
-    decel_start_x = cruise_start_x + MAX_SPEED * CRUISE_DURATION
+    decel_start_x = cruise_start_x + max_speed * CRUISE_DURATION
 
     if time_s <= ACCEL_DURATION:
         speed = accel * time_s
         position = 0.5 * accel * time_s * time_s
     elif time_s <= ACCEL_DURATION + CRUISE_DURATION:
         dt = time_s - ACCEL_DURATION
-        speed = MAX_SPEED
-        position = cruise_start_x + MAX_SPEED * dt
+        speed = max_speed
+        position = cruise_start_x + max_speed * dt
     else:
         dt = min(time_s - ACCEL_DURATION - CRUISE_DURATION, DECEL_DURATION)
-        speed = max(0.0, MAX_SPEED - accel * dt)
-        position = decel_start_x + MAX_SPEED * dt - 0.5 * accel * dt * dt
+        speed = max(0.0, max_speed - accel * dt)
+        position = decel_start_x + max_speed * dt - 0.5 * accel * dt * dt
 
     return position, speed
 

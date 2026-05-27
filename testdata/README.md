@@ -8,3 +8,9 @@ testdataフォルダ内のファイルは、RideVisionのMqttLagTestシーンで
 ```powershell
 python testdata/generate_jitter_vehicle_pose.py --output-dir testdata --rates 10 90
 ```
+
+最大車両速度を変えてブレ感を確認する例（単位はm/s）:
+
+```powershell
+python testdata/generate_jitter_vehicle_pose.py --output-dir testdata --rates 10 90 --max-speed 20
+```
